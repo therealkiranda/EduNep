@@ -1,0 +1,29 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;900&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=Noto+Sans+Devanagari:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    @apply text-gray-800 bg-gray-50;
+    -webkit-font-smoothing: antialiased;
+  }
+  .font-devanagari { font-family: 'Noto Sans Devanagari', sans-serif; }
+  .font-serif      { font-family: 'Playfair Display', serif; }
+  .font-mono       { font-family: 'JetBrains Mono', monospace; }
+}
+
+@layer components {
+  .scrollbar-thin::-webkit-scrollbar       { width: 4px; height: 4px; }
+  .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
+  .scrollbar-thin::-webkit-scrollbar-thumb { @apply bg-gray-200 rounded-full; }
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover { @apply bg-gray-300; }
+}
+
+/* NProgress */
+#nprogress .bar { @apply bg-primary-500; height: 3px; }
+#nprogress .peg  { box-shadow: 0 0 10px theme('colors.primary.500'), 0 0 5px theme('colors.primary.500'); }
