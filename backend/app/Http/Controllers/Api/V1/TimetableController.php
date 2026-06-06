@@ -9,34 +9,42 @@ class TimetableController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
-        $items = Timetable::where('institution_id', $request->user()->institution_id)
-            ->latest()->paginate($request->per_page ?? 20);
-        return response()->json($items);
+        $timetables = Timetable::with('classSubject.subject','classSubject.teacher','class')
+            ->where('institution_id', $request->user()->institution_id)
+            ->when($request->class_id, fn($q) => $q->where('class_id', $request->class_id))
+            ->orderBy('day_of_week')->orderBy('start_time')->get();
+        return response()->json(['data' => $timetables]);
     }
-
     public function store(Request $request): JsonResponse
     {
-        $item = Timetable::create([
-            ...$request->validated(),
+        $request->validate([
+            'class_id'         => 'required|exists:classes,id',
+            'class_subject_id' => 'required|exists:class_subjects,id',
+            'day_of_week'      => 'required|integer|between:0,6',
+            'start_time'       => 'required|date_format:H:i',
+            'end_time'         => 'required|date_format:H:i|after:start_time',
+            'room'             => 'nullable|string|max:50',
+        ]);
+        $tt = Timetable::create([
+            ...$request->only('class_id','class_subject_id','day_of_week','start_time','end_time','room'),
             'institution_id' => $request->user()->institution_id,
         ]);
-        return response()->json(['data' => $item, 'message' => __('messages.created')], 201);
+        return response()->json(['data' => $tt->load('classSubject.subject'), 'message' => __('messages.created')], 201);
     }
-
-    public function show(Timetable $item): JsonResponse
+    public function show(Timetable $timetable): JsonResponse
     {
-        return response()->json(['data' => $item]);
+        return response()->json(['data' => $timetable->load('classSubject.subject','classSubject.teacher')]);
     }
-
-    public function update(Request $request, Timetable $item): JsonResponse
+    public function update(Request $request, Timetable $timetable): JsonResponse
     {
-        $item->update($request->validated());
-        return response()->json(['data' => $item, 'message' => __('messages.updated')]);
+        if ($timetable->institution_id !== $request->user()->institution_id) abort(403);
+        $timetable->update($request->only('day_of_week','start_time','end_time','room'));
+        return response()->json(['data' => $timetable, 'message' => __('messages.updated')]);
     }
-
-    public function destroy(Timetable $item): JsonResponse
+    public function destroy(Request $request, Timetable $timetable): JsonResponse
     {
-        $item->delete();
+        if ($timetable->institution_id !== $request->user()->institution_id) abort(403);
+        $timetable->delete();
         return response()->json(['message' => __('messages.deleted')]);
     }
 }

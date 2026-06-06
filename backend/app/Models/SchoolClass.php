@@ -6,15 +6,15 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class SchoolClass extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
+    protected $table   = 'classes';
     protected $guarded = ['id'];
-    protected $casts = [
-        'is_current' => 'boolean', 'is_mandatory' => 'boolean',
-        'allow_late' => 'boolean', 'all_day' => 'boolean',
-        'two_factor_enabled' => 'boolean', 'options' => 'array',
-        'allowances' => 'array', 'deductions' => 'array', 'settings' => 'array',
-        'due_date' => 'date', 'start_date' => 'date', 'end_date' => 'date',
-        'exam_date' => 'date', 'paid_at' => 'datetime',
-        'published_at' => 'datetime', 'last_login_at' => 'datetime',
-    ];
+    protected $casts   = [];
+    public function institution() { return $this->belongsTo(Institution::class); }
+    public function department()  { return $this->belongsTo(Department::class); }
+    public function sections()    { return $this->hasMany(Section::class, 'class_id'); }
+    public function students()    { return $this->hasMany(Student::class, 'class_id'); }
+    public function subjects()    { return $this->hasMany(ClassSubject::class, 'class_id'); }
+    public function timetables()  { return $this->hasMany(Timetable::class, 'class_id'); }
+    public function exams()       { return $this->hasMany(Exam::class, 'class_id'); }
 }

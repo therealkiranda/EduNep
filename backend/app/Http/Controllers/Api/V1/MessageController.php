@@ -9,34 +9,40 @@ class MessageController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
-        $items = Message::where('institution_id', $request->user()->institution_id)
-            ->latest()->paginate($request->per_page ?? 20);
-        return response()->json($items);
+        $messages = Message::with('sender','recipient')
+            ->where('institution_id', $request->user()->institution_id)
+            ->where(fn($q) => $q->where('sender_id', $request->user()->id)->orWhere('recipient_id', $request->user()->id))
+            ->latest()->paginate(20);
+        return response()->json($messages);
     }
 
-    public function store(Request $request): JsonResponse
+    public function send(Request $request): JsonResponse
     {
-        $item = Message::create([
-            ...$request->validated(),
+        $request->validate(['recipient_id' => 'required|exists:users,id',
+            'body' => 'required|string', 'subject' => 'nullable|string|max:255']);
+        $msg = Message::create([...$request->only('recipient_id','body','subject'),
             'institution_id' => $request->user()->institution_id,
-        ]);
-        return response()->json(['data' => $item, 'message' => __('messages.created')], 201);
+            'sender_id' => $request->user()->id]);
+        return response()->json(['message' => $msg->load('sender','recipient'), 'status' => __('messages.created')], 201);
     }
 
-    public function show(Message $item): JsonResponse
+    public function show(Request $request, Message $message): JsonResponse
     {
-        return response()->json(['data' => $item]);
+        if ($message->recipient_id === $request->user()->id && !$message->is_read) {
+            $message->update(['is_read' => true, 'read_at' => now()]);
+        }
+        return response()->json(['message' => $message->load('sender','recipient')]);
     }
 
-    public function update(Request $request, Message $item): JsonResponse
+    public function markRead(Request $request, Message $message): JsonResponse
     {
-        $item->update($request->validated());
-        return response()->json(['data' => $item, 'message' => __('messages.updated')]);
+        $message->update(['is_read' => true, 'read_at' => now()]);
+        return response()->json(['message' => 'Marked as read.']);
     }
 
-    public function destroy(Message $item): JsonResponse
+    public function unreadCount(Request $request): JsonResponse
     {
-        $item->delete();
-        return response()->json(['message' => __('messages.deleted')]);
+        $count = Message::where('recipient_id', $request->user()->id)->where('is_read', false)->count();
+        return response()->json(['count' => $count]);
     }
 }

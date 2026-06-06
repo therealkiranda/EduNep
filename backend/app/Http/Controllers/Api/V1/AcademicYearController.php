@@ -9,34 +9,40 @@ class AcademicYearController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
-        $items = AcademicYear::where('institution_id', $request->user()->institution_id)
-            ->latest()->paginate($request->per_page ?? 20);
-        return response()->json($items);
+        $years = AcademicYear::with('terms')
+            ->where('institution_id', $request->user()->institution_id)
+            ->latest()->get();
+        return response()->json(['data' => $years]);
     }
-
     public function store(Request $request): JsonResponse
     {
-        $item = AcademicYear::create([
-            ...$request->validated(),
+        $request->validate(['name' => 'required|string|max:255',
+            'start_date' => 'required|date', 'end_date' => 'required|date|after:start_date']);
+        $year = AcademicYear::create([
+            ...$request->only('name','start_date','end_date'),
             'institution_id' => $request->user()->institution_id,
+            'is_current'     => false,
         ]);
-        return response()->json(['data' => $item, 'message' => __('messages.created')], 201);
+        return response()->json(['data' => $year, 'message' => __('messages.created')], 201);
     }
-
-    public function show(AcademicYear $item): JsonResponse
+    public function show(AcademicYear $academicYear): JsonResponse
     {
-        return response()->json(['data' => $item]);
+        return response()->json(['data' => $academicYear->load('terms')]);
     }
-
-    public function update(Request $request, AcademicYear $item): JsonResponse
+    public function update(Request $request, AcademicYear $academicYear): JsonResponse
     {
-        $item->update($request->validated());
-        return response()->json(['data' => $item, 'message' => __('messages.updated')]);
+        $academicYear->update($request->only('name','start_date','end_date'));
+        return response()->json(['data' => $academicYear, 'message' => __('messages.updated')]);
     }
-
-    public function destroy(AcademicYear $item): JsonResponse
+    public function destroy(AcademicYear $academicYear): JsonResponse
     {
-        $item->delete();
+        $academicYear->delete();
         return response()->json(['message' => __('messages.deleted')]);
+    }
+    public function setCurrent(Request $request, AcademicYear $academicYear): JsonResponse
+    {
+        AcademicYear::where('institution_id', $request->user()->institution_id)->update(['is_current' => false]);
+        $academicYear->update(['is_current' => true]);
+        return response()->json(['message' => 'Set as current academic year.', 'data' => $academicYear]);
     }
 }

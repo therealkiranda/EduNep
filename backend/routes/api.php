@@ -33,7 +33,7 @@ use App\Http\Controllers\Api\V1\SettingsController;
 Route::prefix('v1')->group(function () {
 
     // Auth
-    Route::prefix('auth')->group(function () {
+    Route::prefix('auth')->middleware(['throttle:10,1'])->group(function () {
         Route::post('login',          [AuthController::class, 'login']);
         Route::post('forgot-password',[AuthController::class, 'forgotPassword']);
         Route::post('reset-password', [AuthController::class, 'resetPassword']);
@@ -48,7 +48,7 @@ Route::prefix('v1')->group(function () {
     Route::middleware(['auth:sanctum'])->group(function () {
 
         // Auth
-        Route::prefix('auth')->group(function () {
+        Route::prefix('auth')->middleware(['throttle:10,1'])->group(function () {
             Route::post('logout',          [AuthController::class, 'logout']);
             Route::post('refresh',         [AuthController::class, 'refresh']);
             Route::get('me',               [AuthController::class, 'me']);

@@ -6,15 +6,18 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Institution extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
     protected $guarded = ['id'];
-    protected $casts = [
-        'is_current' => 'boolean', 'is_mandatory' => 'boolean',
-        'allow_late' => 'boolean', 'all_day' => 'boolean',
-        'two_factor_enabled' => 'boolean', 'options' => 'array',
-        'allowances' => 'array', 'deductions' => 'array', 'settings' => 'array',
-        'due_date' => 'date', 'start_date' => 'date', 'end_date' => 'date',
-        'exam_date' => 'date', 'paid_at' => 'datetime',
-        'published_at' => 'datetime', 'last_login_at' => 'datetime',
-    ];
+    protected $casts   = ['settings' => 'array'];
+    public function users()         { return $this->hasMany(User::class); }
+    public function students()      { return $this->hasMany(Student::class); }
+    public function staff()         { return $this->hasMany(Staff::class); }
+    public function academicYears() { return $this->hasMany(AcademicYear::class); }
+    public function terms()         { return $this->hasMany(Term::class); }
+    public function departments()   { return $this->hasMany(Department::class); }
+    public function classes()       { return $this->hasMany(SchoolClass::class); }
+    public function feeStructures() { return $this->hasMany(FeeStructure::class); }
+    public function announcements() { return $this->hasMany(Announcement::class); }
+    public function calendarEvents(){ return $this->hasMany(CalendarEvent::class); }
+    public function settings()      { return $this->hasMany(Setting::class); }
 }

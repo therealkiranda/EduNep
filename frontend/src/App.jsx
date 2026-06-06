@@ -4,6 +4,7 @@ import { Toaster } from 'react-hot-toast';
 import { Suspense, lazy } from 'react';
 import { useAuthStore } from '@/store/authStore';
 import '@/locales/i18n';
+import { ErrorBoundary } from '@/ErrorBoundary';
 
 // Layout
 const AdminLayout  = lazy(() => import('@/components/layout/AdminLayout'));
@@ -88,6 +89,7 @@ function PageLoader() {
 
 export default function App() {
   return (
+    <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <Suspense fallback={<PageLoader />}>
@@ -152,5 +154,6 @@ export default function App() {
         duration: 4000,
       }} />
     </QueryClientProvider>
+    </ErrorBoundary>
   );
 }
