@@ -1,12 +1,10 @@
 <?php
 return [
-    'paths'                    => ['api/*', 'sanctum/csrf-cookie'],
+    'paths'                    => ['api/*','sanctum/csrf-cookie'],
     'allowed_methods'          => ['*'],
     'allowed_origins'          => [
-        env('FRONTEND_URL', 'http://localhost:5173'),
-        'https://edu.primelogic.com.np',
-        'http://localhost:5173',
-        'http://localhost:3000',
+        'https://edu.primelogic.com.np','http://localhost:5173',
+        'http://localhost:3000',env('FRONTEND_URL','http://localhost:5173'),
     ],
     'allowed_origins_patterns' => [],
     'allowed_headers'          => ['*'],

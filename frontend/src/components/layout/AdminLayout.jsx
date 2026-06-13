@@ -54,17 +54,17 @@ export default function AdminLayout() {
 
   const { data: unread } = useQuery({
     queryKey: ['unread-messages'],
-    queryFn:  () => messagesApi.unreadCount().then(r => r.data.count),
+    queryFn:  () => messagesApi.unreadCount().then(r => r.data?.count ?? r.data?.unread_count ?? 0),
     refetchInterval: 30_000,
   });
 
   const { data: notifications } = useQuery({
     queryKey: ['notifications'],
-    queryFn:  () => notificationsApi.list().then(r => r.data),
+    queryFn:  () => notificationsApi.list().then(r => r.data?.notifications?.data ?? []),
     refetchInterval: 30_000,
   });
 
-  const unreadNotifs = notifications?.filter(n => !n.read_at).length ?? 0;
+  const unreadNotifs = Array.isArray(notifications) ? notifications.filter(n => !n.read_at).length : 0;
 
   const handleLogout = async () => {
     try { await authApi.logout(); } catch {}
@@ -228,7 +228,13 @@ export default function AdminLayout() {
         <header className="h-14 bg-white border-b border-gray-100 flex items-center justify-between px-4 shadow-sm shrink-0">
           <div className="flex items-center gap-3">
             <button
-              onClick={() => { setSidebarOpen(s => !s); setMobileOpen(s => !s); }}
+              onClick={() => {
+              if (window.innerWidth >= 1024) {
+                setSidebarOpen(s => !s);
+              } else {
+                setMobileOpen(s => !s);
+              }
+            }}
               className="p-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-600"
             >
               <Menu size={18} />

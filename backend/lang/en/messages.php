@@ -1,21 +1,2 @@
 <?php
-return [
-    // Auth
-    'failed'          => 'These credentials do not match our records.',
-    'inactive'        => 'Your account has been deactivated. Please contact admin.',
-    'invalid_otp'     => 'Invalid OTP code. Please try again.',
-    'wrong_password'  => 'Current password is incorrect.',
-    'password_changed'=> 'Password changed successfully. Please login again.',
-
-    // Messages
-    'student_created'     => 'Student enrolled successfully.',
-    'student_promoted'    => 'Student promoted successfully.',
-    'student_transferred' => 'Student transferred successfully.',
-    'student_deactivated' => 'Student deactivated.',
-    'payment_recorded'    => 'Payment recorded successfully.',
-    'profile_updated'     => 'Profile updated successfully.',
-    'event_created'       => 'Event created successfully.',
-    'updated'             => 'Updated successfully.',
-    'deleted'             => 'Deleted successfully.',
-    'created'             => 'Created successfully.',
-];
+return ['failed'=>'These credentials do not match.','inactive'=>'Account deactivated.','invalid_otp'=>'Invalid OTP.','wrong_password'=>'Current password incorrect.','password_changed'=>'Password changed.','student_created'=>'Student enrolled.','student_promoted'=>'Student promoted.','student_transferred'=>'Student transferred.','student_deactivated'=>'Student deactivated.','payment_recorded'=>'Payment recorded.','profile_updated'=>'Profile updated.','event_created'=>'Event created.','updated'=>'Updated successfully.','deleted'=>'Deleted successfully.','created'=>'Created successfully.'];

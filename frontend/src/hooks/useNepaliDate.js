@@ -2,7 +2,7 @@ import { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toDevanagari, NEPALI_MONTHS_EN, NEPALI_MONTHS_NE } from '@/utils/helpers';
 
-// BS year data (days per month)
+// BS calendar data - days per month per year
 const BS_DATA = {
   2078: [31,31,32,31,31,31,30,29,30,29,30,30],
   2079: [31,31,32,31,31,31,30,29,30,29,30,30],
@@ -12,23 +12,55 @@ const BS_DATA = {
   2083: [31,31,32,31,31,31,30,29,30,29,30,30],
   2084: [31,32,31,32,31,30,30,30,29,29,30,31],
   2085: [31,32,31,32,31,30,30,30,29,30,29,31],
+  2086: [31,31,31,32,31,31,30,29,30,29,30,30],
 };
-const AD_EPOCH = '1944-01-01';
-const BS_EPOCH = { year: 2000, month: 9, day: 17 };
+
+// Verified reference: 1 Baisakh 2083 BS = 14 May 2026 AD
+const AD_REF = new Date(Date.UTC(2026, 4, 14)); // 2026-05-14
+const BS_REF = { year: 2083, month: 1, day: 1 };
 
 function adToBs(adDateStr) {
   try {
-    const ad  = new Date(adDateStr);
-    const ref = new Date(AD_EPOCH);
-    let diff  = Math.floor((ad - ref) / 86400000);
+    const parts = adDateStr.split('T')[0].split('-');
+    const adUTC = new Date(Date.UTC(+parts[0], +parts[1] - 1, +parts[2]));
+    let diff = Math.round((adUTC - AD_REF) / 86400000);
 
-    let { year, month, day } = BS_EPOCH;
-    while (diff > 0) {
-      const monthData = BS_DATA[year] || BS_DATA[2082];
-      const dim = monthData[month - 1];
-      if (diff >= dim) { diff -= dim; month++; if (month > 12) { month = 1; year++; } }
-      else { day += diff; diff = 0; }
+    let { year, month, day } = { ...BS_REF };
+    let monthData = BS_DATA[year] || BS_DATA[2083];
+
+    if (diff === 0) return { year, month, day };
+
+    if (diff > 0) {
+      let daysLeft = monthData[month - 1] - day + 1;
+      while (diff > 0) {
+        if (diff < daysLeft) {
+          day += diff;
+          diff = 0;
+        } else {
+          diff -= daysLeft;
+          month++;
+          day = 1;
+          if (month > 12) { month = 1; year++; }
+          monthData = BS_DATA[year] || BS_DATA[2083];
+          daysLeft = monthData[month - 1];
+        }
+      }
+    } else {
+      diff = Math.abs(diff);
+      while (diff > 0) {
+        if (diff < day) {
+          day -= diff;
+          diff = 0;
+        } else {
+          diff -= day;
+          month--;
+          if (month < 1) { month = 12; year--; }
+          monthData = BS_DATA[year] || BS_DATA[2083];
+          day = monthData[month - 1];
+        }
+      }
     }
+
     return { year, month, day };
   } catch { return null; }
 }
@@ -44,25 +76,33 @@ export function useNepaliDate() {
     if (!bs) return adDateStr || '—';
     const useDevanagari = devanagari || isNepali;
     const months = useDevanagari ? NEPALI_MONTHS_NE : NEPALI_MONTHS_EN;
-    const d = useDevanagari ? toDevanagari(bs.day)   : bs.day;
-    const y = useDevanagari ? toDevanagari(bs.year)  : bs.year;
+    const d = useDevanagari ? toDevanagari(bs.day)  : bs.day;
+    const y = useDevanagari ? toDevanagari(bs.year) : bs.year;
     return `${y} ${months[bs.month - 1]} ${d}`;
   }, [isNepali]);
 
   const formatBoth = useCallback((adDateStr) => {
     const bs = adToBs(adDateStr);
     if (!bs) return adDateStr || '—';
-    const adFormatted = new Date(adDateStr).toLocaleDateString('en-US', { year:'numeric', month:'short', day:'numeric' });
+    const adFormatted = new Date(adDateStr).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
     const bsFormatted = `${bs.year} ${NEPALI_MONTHS_EN[bs.month - 1]} ${bs.day} BS`;
-    return { ad: adFormatted, bs: bsFormatted, bsNe: `${toDevanagari(bs.year)} ${NEPALI_MONTHS_NE[bs.month - 1]} ${toDevanagari(bs.day)}` };
+    return {
+      ad:   adFormatted,
+      bs:   bsFormatted,
+      bsNe: `${toDevanagari(bs.year)} ${NEPALI_MONTHS_NE[bs.month - 1]} ${toDevanagari(bs.day)}`,
+    };
   }, []);
 
   const today = useCallback(() => {
-    return adToBs(new Date().toISOString().split('T')[0]);
+    const now = new Date();
+    const iso = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+    return adToBs(iso);
   }, []);
 
   const todayFormatted = useCallback(() => {
-    return format(new Date().toISOString().split('T')[0]);
+    const now = new Date();
+    const iso = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+    return format(iso);
   }, [format]);
 
   return { convert, format, formatBoth, today, todayFormatted, isNepali };
