@@ -1,8 +1,10 @@
 import { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { toDevanagari, NEPALI_MONTHS_EN, NEPALI_MONTHS_NE } from '@/utils/helpers';
+import { toDevanagari } from '@/utils/helpers';
 
-// BS calendar data - days per month per year
+const NEPALI_MONTHS_EN = ['Baisakh','Jestha','Ashadh','Shrawan','Bhadra','Ashwin','Kartik','Mangsir','Poush','Magh','Falgun','Chaitra'];
+const NEPALI_MONTHS_NE = ['बैशाख','जेठ','असार','श्रावण','भाद्र','आश्विन','कार्तिक','मंसिर','पौष','माघ','फाल्गुन','चैत्र'];
+
 const BS_DATA = {
   2078: [31,31,32,31,31,31,30,29,30,29,30,30],
   2079: [31,31,32,31,31,31,30,29,30,29,30,30],
@@ -15,8 +17,8 @@ const BS_DATA = {
   2086: [31,31,31,32,31,31,30,29,30,29,30,30],
 };
 
-// Verified reference: 1 Baisakh 2083 BS = 14 May 2026 AD
-const AD_REF = new Date(Date.UTC(2026, 4, 14)); // 2026-05-14
+// Verified: 1 Baisakh 2083 BS = 14 May 2026 AD
+const AD_REF = new Date(Date.UTC(2026, 4, 14));
 const BS_REF = { year: 2083, month: 1, day: 1 };
 
 function adToBs(adDateStr) {
